@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+/* Palette from docs/09, extended into a small token set.
+   teal-ink / coral-ink are darker variants for text (contrast >= 4.5:1). */
+@theme {
+  --color-paper: #f3f6f5;
+  --color-surface: #ffffff;
+  --color-ink: #142b45;
+  --color-ink-soft: #52647a;
+  --color-ink-faint: #8a98a8;
+  --color-navy: #142b45;
+  --color-navy-deep: #0e2035;
+  --color-navy-line: #26405e;
+  --color-teal: #23a6a0;
+  --color-teal-ink: #12706b;
+  --color-teal-wash: #e5f4f2;
+  --color-coral: #f2a38a;
+  --color-coral-wash: #fdeee8;
+  --color-coral-ink: #8a3a22;
+  --color-line: #dce4e2;
+  --color-line-strong: #c4d0cd;
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+  --shadow-lift: 0 1px 2px rgb(20 43 69 / 0.06), 0 8px 24px -12px rgb(20 43 69 / 0.18);
+}
+
+html {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-paper);
+}
+
+::selection {
+  background: var(--color-teal-wash);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* The one orchestrated moment: on the review screen, identifying details in
+   the reporter's words are struck through one after another. */
+@keyframes strike {
+  from {
+    background-size: 0% 2px;
+  }
+  to {
+    background-size: 100% 2px;
+  }
+}
+.struck {
+  background-image: linear-gradient(var(--color-coral-ink), var(--color-coral-ink));
+  background-repeat: no-repeat;
+  background-position: 0 58%;
+  background-size: 100% 2px;
+  animation: strike 450ms ease-out both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* Feedback for an action the person just took (new draft, new message). */
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.arrive {
+  animation: arrive 260ms ease-out both;
+}

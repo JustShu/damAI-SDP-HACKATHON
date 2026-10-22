@@ -1,0 +1,203 @@
+// AI Neighbourhood Mediator (prototype) — data model.
+// SQLite has no native enums, so "enum-like" columns are plain strings whose
+// allowed values live in src/lib/domain/constants.ts.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Community {
+  id         String             @id @default(cuid())
+  code       String             @unique
+  name       String
+  households Household[]
+  managers   ManagerAssignment[]
+}
+
+// A household is a routing identity for one residential unit — never a login.
+model Household {
+  id          String       @id @default(cuid())
+  communityId String
+  block       String
+  unit        String
+  label       String // human-readable, e.g. "House 18"
+  status      String       @default("ACTIVE") // ACTIVE | INACTIVE
+  community   Community    @relation(fields: [communityId], references: [id])
+  memberships Membership[]
+
+  @@unique([communityId, block, unit])
+}
+
+// Individually authenticated person.
+model User {
+  id          String              @id @default(cuid())
+  email       String              @unique
+  displayName String
+  status      String              @default("ACTIVE")
+  memberships Membership[]
+  managerOf   ManagerAssignment[]
+}
+
+// Verified link between a person and a household (supports turnover).
+model Membership {
+  id          String    @id @default(cuid())
+  userId      String
+  householdId String
+  status      String    @default("VERIFIED") // INVITED | VERIFIED | SUSPENDED | EXPIRED
+  verifiedAt  DateTime?
+  user        User      @relation(fields: [userId], references: [id])
+  household   Household @relation(fields: [householdId], references: [id])
+
+  @@unique([userId, householdId])
+}
+
+model ManagerAssignment {
+  id          String    @id @default(cuid())
+  userId      String
+  communityId String
+  user        User      @relation(fields: [userId], references: [id])
+  community   Community @relation(fields: [communityId], references: [id])
+
+  @@unique([userId, communityId])
+}
+
+// One distinct alleged occurrence. Duplicate reports share an incident, and
+// escalation counts distinct incidents — never raw reports.
+model Incident {
+  id                String   @id @default(cuid())
+  communityId       String
+  targetHouseholdId String
+  category          String
+  occurredAt        DateTime
+  status            String   @default("OPEN") // OPEN | RESOLVED | QUALIFYING_UNRESOLVED | DISPUTED | SAFETY | DISMISSED
+  createdAt         DateTime @default(now())
+  cases             Case[]
+}
+
+// One report by one reporter, plus its two private mediation streams.
+// rawText is the reporter's private original and is never shown to the recipient.
+model Case {
+  id                  String    @id @default(cuid())
+  communityId         String
+  incidentId          String?
+  reporterUserId      String
+  reporterHouseholdId String
+  targetHouseholdId   String
+  category            String
+  topic               String? // short subject, only for category OTHER
+  occurredAt          DateTime
+  rawText             String
+  state               String    @default("DRAFT")
+  disputed            Boolean   @default(false)
+  openedAt            DateTime
+  noticeSentAt        DateTime?
+  firstResponseAt     DateTime?
+  reminderSentAt      DateTime?
+  closedAt            DateTime?
+  incident            Incident? @relation(fields: [incidentId], references: [id])
+  drafts              NoticeDraft[]
+  messages            Message[]
+  relays              Relay[]
+  flags               ReviewFlag[]
+  actions             ManagementAction[]
+}
+
+// AI candidate notice. Approval is bound to the exact text hash of a version;
+// editing or regenerating creates a new version with no approval.
+model NoticeDraft {
+  id             String    @id @default(cuid())
+  caseId         String
+  version        Int
+  text           String
+  textHash       String
+  removedJson    String    @default("[]") // details the AI left out of the original
+  risksJson      String    @default("[]") // privacy findings on the notice text
+  source         String // AI | EDIT
+  tone           String    @default("FRIENDLY") // FRIENDLY | FORMAL | BRIEF
+  provider       String    @default("") // which mediator produced it
+  note           String    @default("") // mediator's explanation to the reporter
+  approvedHash   String?
+  approvedAt     DateTime?
+  sentAt         DateTime?
+  idempotencyKey String?   @unique
+  createdAt      DateTime  @default(now())
+  case           Case      @relation(fields: [caseId], references: [id])
+
+  @@unique([caseId, version])
+}
+
+// Messages in a private stream. side = which party can see it.
+model Message {
+  id        String   @id @default(cuid())
+  caseId    String
+  side      String // REPORTER | RECIPIENT
+  author    String // AI | RESIDENT | SYSTEM
+  kind      String // NOTICE | RESPONSE | RELAY | REMINDER | STATUS | INFO | CLARIFY | MANAGEMENT
+  body      String
+  createdAt DateTime
+  case      Case     @relation(fields: [caseId], references: [id])
+}
+
+// A recipient response and the AI summary proposed for the reporter.
+// The recipient previews and confirms the summary before it is relayed.
+model Relay {
+  id           String    @id @default(cuid())
+  caseId       String
+  responseType String // ACKNOWLEDGE | CLARIFY | DISPUTE | COMMIT
+  rawText      String    @default("")
+  relayText    String
+  status       String    @default("PREVIEW") // PREVIEW | SENT | HELD
+  createdAt    DateTime
+  sentAt       DateTime?
+  case         Case      @relation(fields: [caseId], references: [id])
+}
+
+// Request for human assessment — never a verdict or a warning.
+model ReviewFlag {
+  id                String    @id @default(cuid())
+  caseId            String
+  targetHouseholdId String
+  category          String
+  reason            String // REPEAT_UNRESOLVED | OVERDUE | SAFETY | ABUSE | REVIEW_REQUESTED
+  detail            String    @default("")
+  dedupKey          String    @unique
+  status            String    @default("OPEN") // OPEN | DECIDED
+  createdAt         DateTime
+  reviewedAt        DateTime?
+  case              Case      @relation(fields: [caseId], references: [id])
+}
+
+// Human-only decisions.
+model ManagementAction {
+  id         String   @id @default(cuid())
+  caseId     String
+  flagId     String?
+  reviewerId String
+  decision   String
+  rationale  String
+  policyRef  String
+  createdAt  DateTime
+  case       Case     @relation(fields: [caseId], references: [id])
+}
+
+// Append-only audit log. metadata must never contain raw complaint text.
+model AuditEvent {
+  id           String   @id @default(cuid())
+  actorId      String?
+  action       String
+  resourceType String
+  resourceId   String
+  metadata     String   @default("{}")
+  at           DateTime
+}
+
+// Key/value settings; used for the demo clock offset.
+model Setting {
+  key   String @id
+  value String
+}
