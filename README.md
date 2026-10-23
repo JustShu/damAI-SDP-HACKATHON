@@ -1,54 +1,136 @@
 # DAMAI · Neighbours at peace
 
-*Jiran aman, hidup damai.* DAMAI is a phone-first hackathon prototype for handling neighbour concerns through private, AI-assisted mediation and human community management. **All residents, households, and incidents in the demo are synthetic.** This project is not affiliated with or endorsed by any property company.
+*Jiran aman, hidup damai.*
 
-## What the app does
+DAMAI is a phone-first web app that helps neighbours resolve everyday concerns like noise, parking and pets through **private, AI-assisted mediation**, with **human community management** for anything serious. Residents never message each other directly. An AI mediator rewrites each complaint into a neutral, privacy-safe notice, the reporter approves the exact text, and the other household replies privately. Repeated issues, safety concerns and urgent SOS alerts go to a community manager.
 
-- **Private neighbour mediation:** A resident reports a noise, parking, pet, or other concern. A mediator drafts a neutral notice; the reporter reviews and approves the exact text before it is sent. The other household replies privately and previews the summary relayed back. The reporter can then confirm whether the concern was resolved. Residents do not message each other directly.
-- **Human review:** Safety concerns, requested reviews, overdue cases, and repeated qualifying incidents go to community management. The AI does not decide guilt or impose penalties. A manager records decisions and can reveal a reporter's identity only through an explicit, reasoned, logged action.
-- **Repeat-incident warning drafts:** Three distinct, undisputed, unresolved incidents of the same category against one household within 30 days create a review flag and a draft warning letter. A manager sees a household report and must review, edit, and send the letter; nothing is sent automatically. Unrelated **Other** concerns do not count toward this repeat rule.
-- **Urgent help (SOS):** A resident can send an urgent alert directly to management, outside the mediation flow. Management can acknowledge it, dispatch security with an ETA, and post status updates that appear on the resident's screen. The app is **not** an emergency service; if anyone is in danger, call local emergency services (the demo UI advises 999).
-- **Mobile-first interface:** Phone navigation, a desktop sidebar, and an Add to Home Screen web-app manifest.
+> Built for the SDP Hackathon. **All residents, households and incidents in the demo are synthetic.** This project is not affiliated with or endorsed by any property company.
 
-## Get started locally
+---
 
-### Prerequisites
+## ✨ Features
 
-- Node.js **20.9 or newer** and npm.
-- No AI account or API key is needed for the built-in mediator.
+| Feature | What it does |
+| --- | --- |
+| 🤝 **Private neighbour mediation** | A resident reports a noise, parking, pet or other concern. The AI mediator drafts a neutral notice, the reporter reviews and approves it, and the other household replies privately. The reporter then confirms whether the concern was resolved. |
+| 🧑‍⚖️ **Human review, not AI verdicts** | Safety concerns, overdue cases and repeat incidents are flagged to a community manager. The AI never decides guilt or issues penalties. Revealing a reporter's identity needs an explicit, reasoned and logged manager action. |
+| 📄 **Repeat-incident warning drafts** | Three distinct, undisputed, unresolved incidents of the same category against one household within 30 days create a review flag and a **draft** warning letter. A manager must review, edit and send it. Nothing is sent automatically. |
+| 🚨 **Urgent help (SOS)** | Residents can send an urgent alert straight to management. Managers acknowledge it, dispatch security with an ETA and post live status updates. *(Not an emergency service. In danger, call 999.)* |
+| 🔒 **Privacy by design** | Separate private message streams, server-side permission checks, identifying-detail screening on all outgoing text and an append-only audit log. |
+| 🧠 **Pluggable AI mediator** | Works with **Google Gemini**, **Anthropic Claude** or a built-in rule-based mediator that needs no API key. If a remote AI fails, the app falls back to the built-in one automatically. |
+| 📱 **Mobile-first** | Phone navigation, a desktop sidebar and an installable *Add to Home Screen* web-app manifest. |
 
-Run the following from the project root (the directory containing `package.json`).
+## 🛠️ Tech stack
 
-1. Copy the example environment file:
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS 4 · Prisma 6 + SQLite · Zod · iron-session · Vitest · Playwright
 
-   ```sh
-   # macOS / Linux
-   cp .env.example .env
-   ```
+---
 
-   ```powershell
-   # Windows PowerShell
-   Copy-Item .env.example .env
-   ```
+## 🚀 Local setup (step by step)
 
-   In Windows Command Prompt, use `copy .env.example .env` instead. Edit `.env` and replace `SESSION_SECRET` with your own random secret of at least 32 characters. Keep `.env` private; it is gitignored.
+### 1. Install the prerequisites
 
-2. Install dependencies and create the SQLite database with synthetic accounts and cases:
+- **Node.js 20.9 or newer** (includes npm). Download it from <https://nodejs.org> (choose the LTS version).
+- **Git** (optional, for cloning). Download it from <https://git-scm.com>.
 
-   ```sh
-   npm ci
-   npm run db:setup
-   ```
+Check that both are installed:
 
-   `db:setup` applies the Prisma schema and **re-seeds the demo database**, replacing existing demo data. The default `DATABASE_URL="file:./dev.db"` points to `prisma/dev.db` (the path is relative to `prisma/schema.prisma`). Run `npm run db:seed` only when you intentionally want to reset the demo data.
+```sh
+node -v    # should print v20.9.0 or higher
+npm -v
+```
 
-3. Start the app and visit `http://localhost:3000`:
+### 2. Download the project to your computer
 
-   ```sh
-   npm run dev
-   ```
+Pick **one** of these options.
 
-Choose a seeded account on the sign-in screen. Demo sign-in has no password or self-registration:
+**Option A: with Git (recommended)**
+
+Open a terminal and run:
+
+```sh
+git clone https://github.com/JustShu/damAI-SDP-HACKATHON.git
+cd damAI-SDP-HACKATHON
+```
+
+`git clone` downloads the project, and `cd` moves you into the project folder.
+
+**Option B: as a ZIP (no Git needed)**
+
+1. Open <https://github.com/JustShu/damAI-SDP-HACKATHON>.
+2. Click the green **Code** button, then **Download ZIP**.
+3. Right-click the downloaded ZIP and choose **Extract All** (on Mac, double-click it).
+4. Open the extracted `damAI-SDP-HACKATHON-main` folder (the one that contains `package.json`).
+5. Open a terminal in that folder:
+   - **Windows:** click the address bar in File Explorer, type `cmd` and press **Enter**.
+   - **Mac:** right-click the folder and choose **New Terminal at Folder**.
+
+> All of the commands below must be run from this project folder.
+
+### 3. Create your `.env` file
+
+Copy the example environment file:
+
+```sh
+# macOS / Linux
+cp .env.example .env
+```
+
+```powershell
+# Windows PowerShell
+Copy-Item .env.example .env
+```
+
+```bat
+:: Windows Command Prompt
+copy .env.example .env
+```
+
+### 4. Set a session secret
+
+Open `.env` in a text editor and replace the `SESSION_SECRET` value with a random string of **at least 32 characters**. This command generates one on any OS:
+
+```sh
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
+
+Paste the output into `.env`:
+
+```dotenv
+SESSION_SECRET="paste-the-generated-value-here"
+```
+
+> 🔐 `.env` is listed in `.gitignore`. **Never commit it** or share your keys.
+
+### 5. Install dependencies
+
+```sh
+npm ci
+```
+
+(`npm install` also works if `npm ci` complains about the lockfile.)
+
+### 6. Create the database with demo data
+
+```sh
+npm run db:setup
+```
+
+This creates a local SQLite database at `prisma/dev.db` and fills it with synthetic residents, households and cases.
+
+> ⚠️ Re-running `db:setup` or `db:seed` **resets** all demo data.
+
+### 7. Start the app
+
+```sh
+npm run dev
+```
+
+Open **<http://localhost:3000>** in your browser.
+
+### 8. Sign in with a demo account
+
+Demo sign-in has no passwords. Just pick an account on the sign-in screen:
 
 | Account | Role |
 | --- | --- |
@@ -56,35 +138,103 @@ Choose a seeded account on the sign-in screen. Demo sign-in has no password or s
 | `resident18@example.test` (Nur Aisyah) | Resident, House 18 |
 | `manager@example.test` (Farah) | Community manager |
 
-Other synthetic accounts, including an unverified invite, are also available on the sign-in screen. The manager interface includes a demo clock and a reset control; reset replaces current demo data.
+**Try this flow:** sign in as Daniel → report a concern about House 18 → approve the notice → sign out → sign in as Nur Aisyah → reply → sign in as Farah to see the manager view. The manager screen also has a **demo clock** for jumping time forward to trigger reminders and flags, plus a **reset** button.
 
-### Optional: use an AI provider
+The app works fully at this point using the built-in mediator. Adding an AI key (below) is optional.
 
-The default `MEDIATOR_PROVIDER="auto"` uses Claude when `ANTHROPIC_API_KEY` is set, otherwise Gemini when `GEMINI_API_KEY` is set, otherwise the built-in rule-based mediator. Set `MEDIATOR_PROVIDER` to `local`, `claude`, or `gemini` to select explicitly. For example, in `.env`:
+---
+
+## 🤖 Gemini AI API key setup (optional)
+
+Gemini gives the mediator more natural, context-aware wording. Google AI Studio has a **free tier**.
+
+### 1. Create an API key
+
+1. Go to **<https://aistudio.google.com/apikey>**.
+2. Sign in with your Google account and accept the terms if asked.
+3. Click **Create API key**. Pick an existing Google Cloud project or let AI Studio create one for you.
+4. **Copy** the key. Keep it private.
+
+### 2. Add the key to `.env`
+
+Open `.env` and set:
 
 ```dotenv
 MEDIATOR_PROVIDER="gemini"
-GEMINI_API_KEY="your-api-key"
+GEMINI_API_KEY="paste-your-key-here"
 ```
 
-For Claude, use `MEDIATOR_PROVIDER="claude"` and `ANTHROPIC_API_KEY`. Optional `GEMINI_MODEL` and `CLAUDE_MODEL` override the provider's model name; see `.env.example` for all variables. After editing `.env`, restart the dev server. Run `npm run ai:check` to test the selected provider with a **synthetic** report; this command calls the remote provider if one is selected and does not use the app's fallback. In the app, a failing or timed-out remote provider falls back to the built-in mediator. Provider keys remain server-side. The remote adapters have not been verified against live APIs in this prototype.
+You can also leave `MEDIATOR_PROVIDER="auto"`. Auto mode uses Claude if `ANTHROPIC_API_KEY` is set, otherwise Gemini if `GEMINI_API_KEY` is set, otherwise the built-in mediator.
 
-## Development and checks
+**Optional: choose a model.** The default is `gemini-3.1-flash-lite`. Model names change over time, so if you get a "model not found" error, check the current Flash model name in AI Studio and set it:
+
+```dotenv
+GEMINI_MODEL="the-current-flash-model-name"
+```
+
+### 3. Test the connection
+
+```sh
+npm run ai:check
+```
+
+This sends **one synthetic sample report** straight to Gemini, with no fallback, and prints the result. A successful run looks like:
+
+```text
+MEDIATOR_PROVIDER = "gemini"  →  using: gemini:gemini-3.1-flash-lite
+GEMINI_API_KEY    = set
+...
+✓ The AI works (gemini:..., 1.8s). Outcome: NOTICE
+```
+
+### 4. Restart the app
+
+Stop the dev server (`Ctrl + C`) and start it again so it picks up the new `.env`:
+
+```sh
+npm run dev
+```
+
+New notice drafts are now written by Gemini. Your API key stays on the server and is never sent to the browser.
+
+### Troubleshooting Gemini
+
+| Error from `ai:check` | What to do |
+| --- | --- |
+| `Gemini API error 400` | The key is wrong or missing. Re-copy it into `GEMINI_API_KEY` with no extra spaces. |
+| `Gemini API error 403` | This key or project can't use the model or API. Check the key in AI Studio, or try another model. |
+| `Gemini API error 404` | The model name doesn't exist. Set `GEMINI_MODEL` to a current model from AI Studio. |
+| `Gemini API error 429` | You've hit the free-tier rate limit. Wait a minute and retry. |
+| `Gemini API error 5xx` / `AI timeout` | Temporary Google issue. Retry later. The app falls back to the built-in mediator meanwhile. |
+| `using: built-in` | The key wasn't picked up. Make sure you edited `.env` (not `.env.example`) and that `GEMINI_API_KEY` isn't empty. |
+
+### Using Claude instead
+
+```dotenv
+MEDIATOR_PROVIDER="claude"
+ANTHROPIC_API_KEY="your-anthropic-key"
+# CLAUDE_MODEL="claude-opus-5-5"
+```
+
+Get a key at <https://console.anthropic.com>.
+
+---
+
+## 🧪 Development commands
 
 | Command | Purpose |
 | --- | --- |
-| `npm run dev` | Start the Next.js development server. |
-| `npm run build` | Create a production build. |
-| `npm run start` | Serve the production build. |
-| `npm run typecheck` | Check TypeScript types. |
-| `npm run lint` | Run ESLint. |
-| `npm test` | Run Vitest unit and integration tests against a separate `prisma/test.db`. |
-| `npm run db:setup` | Apply schema and replace the demo database with seeded data. |
-| `npm run db:seed` | Replace demo data without applying schema changes. |
-| `npm run ai:check` | Test the configured mediator with a synthetic input. |
-| `npm run e2e` | Run Playwright browser tests against a production build on port 3100. |
+| `npm run dev` | Start the development server |
+| `npm run build` / `npm run start` | Build and serve a production build |
+| `npm run typecheck` | Check TypeScript types |
+| `npm run lint` | Run ESLint |
+| `npm test` | Run Vitest tests (uses a separate `prisma/test.db`, with remote AI disabled) |
+| `npm run db:setup` | Apply the schema and reseed the demo database |
+| `npm run db:seed` | Reseed demo data only |
+| `npm run ai:check` | Test the configured AI provider |
+| `npm run e2e` | Run Playwright browser tests on port 3100 |
 
-For browser tests, install Chromium once, then build before running Playwright:
+For browser tests:
 
 ```sh
 npx playwright install chromium
@@ -92,20 +242,31 @@ npm run build
 npm run e2e
 ```
 
-Playwright runs mobile and desktop projects and starts its own server on port 3100. The unit/integration test configuration uses a separate SQLite database and disables remote AI calls; browser tests exercise the seeded demo app, so avoid running them against data you want to retain.
+## 📂 Project structure
 
-## How it works
+```text
+src/
+  app/              Pages and API route handlers (src/app/api)
+  components/       UI components
+  lib/domain/       Business rules, permissions, privacy, case state machine
+  lib/mediator/     AI providers: gemini.ts, claude.ts, local.ts + prompts
+prisma/
+  schema.prisma     Data model
+  seed.ts           Synthetic demo data
+scripts/check-ai.ts AI provider connection test
+tests/, e2e/        Vitest and Playwright tests
+```
 
-- **Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Prisma 6 with SQLite, Zod, and signed `iron-session` cookies. Vitest covers domain logic and Playwright covers browser flows.
-- **Code layout:** `src/app` contains pages and `src/app/api` contains route handlers. Server-side rules, permissions, privacy checks, and case state transitions live in `src/lib/domain`; mediator implementations live in `src/lib/mediator`. `prisma/schema.prisma` defines the data model; `src/lib/seed.ts` creates the synthetic demo data.
-- **Privacy controls:** Access is checked on the server by person, household, and community. Reporter and recipient see separate private message streams. The server checks outgoing text for identifying details, even when an AI provider drafts it. Manager identity reveals require a recorded reason. These controls are prototype safeguards, not a guarantee of anonymity.
-- **Notice integrity:** Approval is bound to the SHA-256 hash of a specific draft; editing or regenerating requires new approval. Sending uses an idempotency key and guarded state transitions to avoid duplicate delivery.
-- **Deterministic escalation:** For noise, parking, and pet concerns, reports concerning the same household and category within a two-hour occurrence window share one incident. Only distinct incidents marked unresolved and not disputed count toward the 3-in-30-days manager review rule. A reply reminder is due after 72 hours; still-open cases are flagged after seven days. Time-based checks run on page loads and when the demo clock moves, with no background scheduler.
+## ⚙️ How it works
 
-## Prototype limitations
+- **Notice integrity:** Approval is tied to the SHA-256 hash of the exact draft. Any edit or regeneration needs fresh approval. Sending uses an idempotency key to prevent duplicates.
+- **Deterministic escalation:** Reports about the same household and category within two hours count as one incident. Only distinct, undisputed, unresolved incidents count toward the 3-in-30-days rule. A reply reminder is due after 72 hours, and open cases are flagged after 7 days.
+- **Privacy controls:** Server-side access checks by person, household and community. Outgoing text, including AI-drafted text, is screened for identifying details. Identity reveals require a recorded reason.
 
-- Demo sign-in has no passwords or real identity verification; seeded memberships are treated as verified. **Do not deploy this as a live resident or emergency system.**
-- Keyword-based safety and abuse screening and the built-in rule-based mediator can produce false positives or miss problems; duplicate detection also uses a simple time window.
-- SOS alerts are only useful if a community actively staffs management. There is no guaranteed real-time monitoring or dispatch integration.
-- No outside-the-app notifications, attachments, Bahasa Melayu interface, or data retention/deletion controls are included.
-- Reminder and repeat thresholds in `src/lib/domain/constants.ts` are configurable **demo defaults**, not validated community policy or legal advice.
+## ⚠️ Prototype limitations
+
+- Demo sign-in has no passwords or identity verification. **Do not deploy this as a live resident or emergency system.**
+- Keyword-based safety screening and the rule-based mediator can produce false positives or miss issues.
+- SOS alerts depend on staffed management. There is no real dispatch integration.
+- No external notifications, attachments, Bahasa Melayu UI or data-retention controls yet.
+- Thresholds in `src/lib/domain/constants.ts` are demo defaults, not validated policy or legal advice.
