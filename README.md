@@ -1,5 +1,14 @@
 # DAMAI · Neighbours at peace
 
+## 🚀 Live Prototype
+
+Experience **damAI — AI Neighbourhood Mediator** in action.
+
+[![Launch Prototype](https://img.shields.io/badge/Launch_Prototype-Visit_Now-6366F1?style=for-the-badge&logo=vercel&logoColor=white)](https://dam-ai-sdp-hackathon.vercel.app/)
+
+Or [Try the live prototype here :)](https://dam-ai-sdp-hackathon.vercel.app/)
+> Explore the prototype using the built-in demo accounts.
+
 *Jiran aman, hidup damai.*
 
 DAMAI is a phone-first web app that helps neighbours resolve everyday concerns like noise, parking and pets through **private, AI-assisted mediation**, with **human community management** for anything serious. Residents never message each other directly. An AI mediator powered by **Google Gemini** rewrites each complaint into a neutral, privacy-safe notice, the reporter approves the exact text, and the other household replies privately. Repeated issues, safety concerns and urgent SOS alerts go to a community manager.
