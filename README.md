@@ -1,178 +1,111 @@
 # DAMAI · Neighbours at peace
 
-*Jiran aman, hidup damai.* Hackathon prototype for privacy-first, AI-mediated neighbour concerns, plus urgent help from community management. **All residents, homes and incidents are synthetic.** Not affiliated with or endorsed by any property company.
+*Jiran aman, hidup damai.* DAMAI is a phone-first hackathon prototype for handling neighbour concerns through private, AI-assisted mediation and human community management. **All residents, households, and incidents in the demo are synthetic.** This project is not affiliated with or endorsed by any property company.
 
-Resident A reports a concern → the AI mediator drafts a neutral notice → A reviews exactly what will be sent and approves it → Resident B replies privately to the mediator → the mediator relays a safe summary → A confirms resolution. Unresolved, repeated or unsafe cases go to a human manager. The AI never decides guilt or issues penalties.
+## What the app does
 
-**What's new in DAMAI:**
-- **Warning letters:** when a household reaches 3 separate unresolved incidents of the same type within 30 days, DAMAI drafts a formal warning letter and a household report for management. A manager reviews, edits and sends it. Nothing is sent automatically.
-- **Urgent help (SOS):** for things happening right now, like neighbours fighting. The alert goes straight to management, who can dispatch security; the resident sees each update live ("Security is on the way · about 5 min").
-- **Phone-first design:** a bottom tab bar with a big Report button and SOS, and an installable app (Add to Home Screen).
+- **Private neighbour mediation:** A resident reports a noise, parking, pet, or other concern. A mediator drafts a neutral notice; the reporter reviews and approves the exact text before it is sent. The other household replies privately and previews the summary relayed back. The reporter can then confirm whether the concern was resolved. Residents do not message each other directly.
+- **Human review:** Safety concerns, requested reviews, overdue cases, and repeated qualifying incidents go to community management. The AI does not decide guilt or impose penalties. A manager records decisions and can reveal a reporter's identity only through an explicit, reasoned, logged action.
+- **Repeat-incident warning drafts:** Three distinct, undisputed, unresolved incidents of the same category against one household within 30 days create a review flag and a draft warning letter. A manager sees a household report and must review, edit, and send the letter; nothing is sent automatically. Unrelated **Other** concerns do not count toward this repeat rule.
+- **Urgent help (SOS):** A resident can send an urgent alert directly to management, outside the mediation flow. Management can acknowledge it, dispatch security with an ETA, and post status updates that appear on the resident's screen. The app is **not** an emergency service; if anyone is in danger, call local emergency services (the demo UI advises 999).
+- **Mobile-first interface:** Phone navigation, a desktop sidebar, and an Add to Home Screen web-app manifest.
 
-## Run it locally
+## Get started locally
 
-Requires Node.js 20+.
+### Prerequisites
 
-```bash
-cp .env.example .env          # then set SESSION_SECRET to any random 32+ character string
-npm install
-npm run db:setup              # creates prisma/dev.db and loads the synthetic demo data
-npm run dev                   # http://localhost:3000
-```
+- Node.js **20.9 or newer** and npm.
+- No AI account or API key is needed for the built-in mediator.
 
-**On Windows (Command Prompt)**, run these one at a time inside the `neighbourhood-mediator` folder (the one with `package.json`):
+Run the following from the project root (the directory containing `package.json`).
 
-```bash
-copy .env.example .env
-```
+1. Copy the example environment file:
 
-```bash
-npm install
-```
-
-```bash
-npm run db:setup
-```
-
-```bash
-npm run dev
-```
-
-Sign in by choosing a demo account; there is no password and no sign-up in demo mode.
-
-## Using Gemini (real AI)
-
-Without a key, the built-in mediator writes the notices. To use Google Gemini:
-
-1. Create a key at [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
-2. Open `.env` (on Windows: `notepad .env`) and set:
+   ```sh
+   # macOS / Linux
+   cp .env.example .env
    ```
-   MEDIATOR_PROVIDER="gemini"
-   GEMINI_API_KEY="paste-your-key-here"
+
+   ```powershell
+   # Windows PowerShell
+   Copy-Item .env.example .env
    ```
-3. Check the key works. This sends one made-up sample report to Gemini and prints the result, or the exact reason it failed:
-   ```bash
-   npm run ai:check
+
+   In Windows Command Prompt, use `copy .env.example .env` instead. Edit `.env` and replace `SESSION_SECRET` with your own random secret of at least 32 characters. Keep `.env` private; it is gitignored.
+
+2. Install dependencies and create the SQLite database with synthetic accounts and cases:
+
+   ```sh
+   npm ci
+   npm run db:setup
    ```
-4. Restart `npm run dev` (Ctrl+C, then run it again).
 
-The review screen shows who wrote each version: **"written by Gemini"** or **"written by the built-in mediator"**. If Gemini fails for a report (wrong key, model not available, usage limit, no internet), the built-in mediator writes it instead, so the reporter still gets a notice. The terminal running `npm run dev` prints Google's reason. If the model isn't available on your key, set `GEMINI_MODEL` in `.env`.
+   `db:setup` applies the Prisma schema and **re-seeds the demo database**, replacing existing demo data. The default `DATABASE_URL="file:./dev.db"` points to `prisma/dev.db` (the path is relative to `prisma/schema.prisma`). Run `npm run db:seed` only when you intentionally want to reset the demo data.
 
-**Generating and regenerating:** after the first draft, the reporter can choose **Friendly / Formal / Brief** or press **Try another wording** as many times as they like. Each press makes a new version, and only the version they approve is sent.
+3. Start the app and visit `http://localhost:3000`:
 
-## "Other" concerns
+   ```sh
+   npm run dev
+   ```
 
-Besides Noise, Parking and Pet, residents can choose **Other** (rubbish, smoke, smells, leaks, trees, damage and so on). They add a short topic such as "Rubbish left outside", which can appear in the notice. The built-in mediator recognises common issues and otherwise describes the concern using that topic. Gemini and Claude get the topic too.
+Choose a seeded account on the sign-in screen. Demo sign-in has no password or self-registration:
 
-"Other" reports are never grouped together and never count toward the "3 in 30 days" rule, because they can be about unrelated things. The 72-hour reminder and 7-day overdue rules still apply.
+| Account | Role |
+| --- | --- |
+| `resident39@example.test` (Daniel Lim) | Resident, House 39 |
+| `resident18@example.test` (Nur Aisyah) | Resident, House 18 |
+| `manager@example.test` (Farah) | Community manager |
 
-| Account | Who | Use in the demo |
-|---|---|---|
-| Daniel Lim (`resident39@example.test`) | House 39 | Reporter |
-| Nur Aisyah (`resident18@example.test`) | House 18 | Recipient |
-| Priya Raman, Hafiz Osman | Houses 22 and 25 | Other reporters in the seeded history |
-| Farah (`manager@example.test`) | Estate manager | Review queue, demo clock, reset |
-| Invited (unverified) | House 41 | Shows that an unverified person gets no access |
+Other synthetic accounts, including an unverified invite, are also available on the sign-in screen. The manager interface includes a demo clock and a reset control; reset replaces current demo data.
 
-## Phone app
+### Optional: use an AI provider
 
-DAMAI is designed for phones first. On a phone it shows a bottom tab bar (**Home**, a big **Report** button, and **SOS**); on a computer it shows a sidebar.
+The default `MEDIATOR_PROVIDER="auto"` uses Claude when `ANTHROPIC_API_KEY` is set, otherwise Gemini when `GEMINI_API_KEY` is set, otherwise the built-in rule-based mediator. Set `MEDIATOR_PROVIDER` to `local`, `claude`, or `gemini` to select explicitly. For example, in `.env`:
 
-To use it like an app on your phone, connect your phone to the same Wi-Fi as your computer and open the **Network** address that `npm run dev` prints (e.g. `http://192.168.x.x:3000`). Then choose **Add to Home Screen** in your browser menu.
-
-## Warning letters
-
-When the third separate unresolved incident of the same type against one household lands within 30 days (the existing repeat rule), DAMAI:
-
-1. Raises the review flag as before.
-2. Drafts a **formal warning letter** from the facts only: dates, number of incidents, and what is being asked. It never says who reported.
-3. Shows management a **household report**: unresolved incidents, concerns in the last 90 days by type, disputes, how the household replied, and earlier actions.
-
-The manager names the community rule (it replaces `[community rule]` in the letter), records a reason, edits the letter if needed, and presses **Send warning letter**. It arrives in the household's private thread from "Community management (a person)". Choosing any other decision discards the draft. Only distinct, undisputed, unresolved incidents count; several reports of the same night count once.
-
-## Urgent help (SOS)
-
-For something happening **right now**, such as a fight, an injury or an intruder. It is separate from neighbour mediation:
-
-- The resident taps **SOS**, picks what's happening, says where, and sends. A 999 button is always on screen.
-- Management sees it at the top of their page (with the resident's name and house so security can reach them) and responds: **Seen**, **Dispatch security** (with ETA and an optional note), **Security on scene**, **Police contacted**, or **Resolved**.
-- The resident's screen updates by itself with each step. They can cancel a false alarm.
-- Up to 5 alerts per resident per day. Alert details are never written to the audit log.
-
-DAMAI is not monitored in real time unless your community staffs it, so the app always tells residents to call 999 first if anyone is in danger.
-
-## Six-minute demo script
-
-1. **Daniel (House 39):** *Report a concern*, choose House 18 and parking, type something emotional like "House 18 keeps parking in front of my gate!! So rude. It's House 39's gate." The review screen shows your words with identifying details struck out next to the exact neutral notice. Tick the consent box, then *Approve and send*.
-2. **Nur Aisyah (House 18):** open the shared concern ("reported, not a confirmed violation"). Choose *Propose an action*, write a reply, preview the summary that will be shared, then *Share this summary*.
-3. **Daniel:** open the parking case, read the relayed summary (not House 18's own words), then *Mark as resolved*.
-4. **Daniel:** open the seeded noise concern about House 18 and choose *Not resolved yet*. That makes the third separate unresolved noise incident in 30 days, so the case goes to management review. No warning is issued.
-5. **Farah (manager):** open the flag. It lists the separate incidents (one was reported by two households but counts once), and the reporter's identity stays hidden unless revealed with a logged reason. Record a decision with a rationale and the rule applied.
-6. **Farah:** the flag shows **Warning letter ready to review**. Open it, read the household report, fill in the rule (e.g. "Demo Park house rules, s.4 quiet hours") and a reason, then *Send warning letter*. Sign in as Nur Aisyah to see it arrive.
-7. **Daniel:** tap **SOS**, choose *Fight or violence*, enter a location, then *Alert management now*. Keep this screen open.
-8. **Farah:** the alert is at the top of the page. Open it and *Dispatch security* with an ETA. Daniel's screen changes to "Security on the way" by itself.
-9. **Farah:** *Advance 1 day*. The unanswered pet concern passes 7 days and an "Unresolved after 7 days" flag appears.
-
-*Reset demo data* on the manager page restores everything for another run.
-
-## Tests
-
-```bash
-npm test             # 58 unit/integration tests (Vitest, separate prisma/test.db)
-npm run typecheck
-npm run lint
-npm run build && npx playwright install chromium && npm run e2e   # browser walkthrough of the demo above
+```dotenv
+MEDIATOR_PROVIDER="gemini"
+GEMINI_API_KEY="your-api-key"
 ```
 
-Acceptance tests from `docs/10` mapped to `tests/`:
+For Claude, use `MEDIATOR_PROVIDER="claude"` and `ANTHROPIC_API_KEY`. Optional `GEMINI_MODEL` and `CLAUDE_MODEL` override the provider's model name; see `.env.example` for all variables. After editing `.env`, restart the dev server. Run `npm run ai:check` to test the selected provider with a **synthetic** report; this command calls the remote provider if one is selected and does not use the app's fallback. In the app, a failing or timed-out remote provider falls back to the built-in mediator. Provider keys remain server-side. The remote adapters have not been verified against live APIs in this prototype.
 
-| Tests | File |
-|---|---|
-| T17, identity, household scoping | `phase0-identity.test.ts` |
-| T01–T05, T15, T16, T18, T20 (send), AI failure | `phase1-reporter.test.ts` |
-| T06–T08, abusive replies, relay privacy | `phase2-recipient.test.ts` |
-| T09–T14, T19, T20 (flags), manager decisions and reveal logging | `phase3-escalation.test.ts` |
-| Mediator: bad-faith decline, child safety, clarification, fact extraction, regenerate/tone, reply summaries | `phase4-mediator.test.ts` |
-| "Other" concerns (topic, drafting, regenerate, no grouping/repeat counting), Gemini adapter and fallback | `phase5-other-and-ai.test.ts` |
-| Warning letters (draft, household report, manager-only send, discard) and urgent alerts (dispatch, live updates, privacy, cancel, limits) | `phase6-letters-alerts.test.ts` |
+## Development and checks
 
-## How it's built
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Next.js development server. |
+| `npm run build` | Create a production build. |
+| `npm run start` | Serve the production build. |
+| `npm run typecheck` | Check TypeScript types. |
+| `npm run lint` | Run ESLint. |
+| `npm test` | Run Vitest unit and integration tests against a separate `prisma/test.db`. |
+| `npm run db:setup` | Apply schema and replace the demo database with seeded data. |
+| `npm run db:seed` | Replace demo data without applying schema changes. |
+| `npm run ai:check` | Test the configured mediator with a synthetic input. |
+| `npm run e2e` | Run Playwright browser tests against a production build on port 3100. |
 
-- **Next.js + TypeScript + Tailwind**, with API routes in `src/app/api`. Each route resolves the user from a signed session cookie and calls one service in `src/lib/domain`.
-- **SQLite + Prisma** (`prisma/schema.prisma`). To use Postgres, change `provider` and `DATABASE_URL`.
-- **AI mediator** (`src/lib/mediator`): one `MediatorProvider` interface with three implementations:
-  - **Built-in** (`local.ts`, default, no key needed): a rule-based engine that checks the report for safety and intent, extracts the facts (what, where, how often, the impact), writes a neutral notice in three tones with several wordings, and summarises the recipient's reply in the third person.
-  - **Claude** (`claude.ts`): set `ANTHROPIC_API_KEY` in `.env`. It uses structured output, low effort and server-side refusal fallback.
-  - **Gemini** (`gemini.ts`): set `GEMINI_API_KEY`. Google AI Studio has a free tier.
+For browser tests, install Chromium once, then build before running Playwright:
 
-  Whichever writes the text, the server validates it with Zod and runs its own privacy and safety checks. If a remote AI fails, the built-in mediator takes over. The Claude and Gemini adapters have **not been tested against the live APIs** (no keys were available while building).
+```sh
+npx playwright install chromium
+npm run build
+npm run e2e
+```
 
-Key decisions:
+Playwright runs mobile and desktop projects and starts its own server on port 3100. The unit/integration test configuration uses a separate SQLite database and disables remote AI calls; browser tests exercise the seeded demo app, so avoid running them against data you want to retain.
 
-- **The mediator can say no.** Some reports get no notice at all:
-  - Reports about wanting to upset someone are declined.
-  - Vague reports get a factual follow-up question.
-  - Anything suggesting a threat or a risk to a child goes straight to management, with 999 / Talian Kasih 15999 guidance, and nothing reaches the neighbour.
+## How it works
 
-  These screens run before any AI, so no provider can skip them.
-- **The server enforces privacy, not the AI.** `privacy.ts` scans every outgoing text. It blocks the reporter's household, name, email or phone, and flags indirect details such as house numbers, plates and "my …" for explicit acknowledgement.
-- **Approval is tied to an exact version.** Approving stores the SHA-256 of the exact text. Any edit or regeneration creates a new version, and sending re-checks the hash.
-- **Sending can't be duplicated:** each send carries a unique idempotency key, and the state changes use compare-and-set updates.
-- **Escalation uses fixed rules with no AI** (`incidents.ts`, `policy.ts`):
-  - Reports about the same household and category within ±2 h share one incident.
-  - An incident counts only if the reporter marked it unresolved and the recipient didn't dispute it.
-  - 3 distinct counted incidents in a rolling 30 days raises a review flag.
-  - A one-time reminder goes out at 72 h, and an overdue flag at 7 days.
-  - Review flags are unique by key, so they are never created twice.
-- **No cron:** the time rules run on page loads and whenever the demo clock moves.
-- **Each side only sees their own messages.** Residents never message each other; each side only sees its own private stream.
+- **Stack:** Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 4, Prisma 6 with SQLite, Zod, and signed `iron-session` cookies. Vitest covers domain logic and Playwright covers browser flows.
+- **Code layout:** `src/app` contains pages and `src/app/api` contains route handlers. Server-side rules, permissions, privacy checks, and case state transitions live in `src/lib/domain`; mediator implementations live in `src/lib/mediator`. `prisma/schema.prisma` defines the data model; `src/lib/seed.ts` creates the synthetic demo data.
+- **Privacy controls:** Access is checked on the server by person, household, and community. Reporter and recipient see separate private message streams. The server checks outgoing text for identifying details, even when an AI provider drafts it. Manager identity reveals require a recorded reason. These controls are prototype safeguards, not a guarantee of anonymity.
+- **Notice integrity:** Approval is bound to the SHA-256 hash of a specific draft; editing or regenerating requires new approval. Sending uses an idempotency key and guarded state transitions to avoid duplicate delivery.
+- **Deterministic escalation:** For noise, parking, and pet concerns, reports concerning the same household and category within a two-hour occurrence window share one incident. Only distinct incidents marked unresolved and not disputed count toward the 3-in-30-days manager review rule. A reply reminder is due after 72 hours; still-open cases are flagged after seven days. Time-based checks run on page loads and when the demo clock moves, with no background scheduler.
 
-## Prototype simplifications (honest limitations)
+## Prototype limitations
 
-- The demo sign-in has no passwords or real identity verification. Memberships are seeded as already verified.
-- Duplicate detection is a simple ±2 h window. A borderline case is not routed to a human.
-- Safety and abuse screening is a keyword list (plus the provider's flag). It is broad on purpose and will have false positives and misses.
-- Rate limiting is a simple per-person daily cap, and there is no enumeration protection beyond showing only your own community's homes.
-- The built-in mediator is rule-based. It handles common noise, parking and pet reports well but can misread unusual wording. A real LLM (Claude or Gemini) handles open-ended reports better.
-- Not included: Bahasa Melayu (P1), attachments (P2), notifications outside the app, and data retention/deletion.
-- The policy values (72 h, 7 days, 3 in 30 days) are configurable demo defaults in `src/lib/domain/constants.ts`, not validated policy or legal advice.
+- Demo sign-in has no passwords or real identity verification; seeded memberships are treated as verified. **Do not deploy this as a live resident or emergency system.**
+- Keyword-based safety and abuse screening and the built-in rule-based mediator can produce false positives or miss problems; duplicate detection also uses a simple time window.
+- SOS alerts are only useful if a community actively staffs management. There is no guaranteed real-time monitoring or dispatch integration.
+- No outside-the-app notifications, attachments, Bahasa Melayu interface, or data retention/deletion controls are included.
+- Reminder and repeat thresholds in `src/lib/domain/constants.ts` are configurable **demo defaults**, not validated community policy or legal advice.
