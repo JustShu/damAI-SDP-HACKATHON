@@ -56,13 +56,13 @@ export function LoginList({ accounts }: { accounts: Account[] }) {
         g.items.length ? (
           <section key={g.title} className="space-y-2">
             <h3 className="text-sm font-semibold text-ink-soft">{g.title}</h3>
-            <ul className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
+            <ul className="overflow-hidden rounded-3xl bg-white shadow-lift ring-1 ring-line">
               {g.items.map((a) => (
                 <li key={a.email} className="border-b border-line last:border-0">
                   <button
                     onClick={() => signIn(a.email)}
                     disabled={busy !== null}
-                    className="flex w-full items-center gap-3.5 px-4 py-3 text-left transition-colors hover:bg-teal-wash disabled:opacity-60"
+                    className="flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition-colors hover:bg-teal-wash active:bg-teal-wash disabled:opacity-60"
                   >
                     <Avatar name={a.displayName} size={40} />
                     <span className="min-w-0 flex-1">

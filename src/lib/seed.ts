@@ -12,6 +12,9 @@ const D = 24 * H;
 export async function resetDatabase(db: PrismaClient) {
   await db.$transaction([
     db.auditEvent.deleteMany(),
+    db.warningLetter.deleteMany(),
+    db.emergencyUpdate.deleteMany(),
+    db.emergencyAlert.deleteMany(),
     db.managementAction.deleteMany(),
     db.reviewFlag.deleteMany(),
     db.relay.deleteMany(),

@@ -1,9 +1,11 @@
 import { redirect } from "next/navigation";
-import { Scale } from "lucide-react";
+import { FileWarning, Home, Scale } from "lucide-react";
 import { now } from "@/lib/clock";
 import { AppError } from "@/lib/errors";
 import { DECISION_LABELS, FLAG_LABELS, MANAGER_DECISIONS } from "@/lib/domain/constants";
 import { getReviewDetail } from "@/lib/domain/review";
+import { getHouseholdReport } from "@/lib/domain/warnings";
+import { WarningLetterForm } from "@/components/WarningLetter";
 import { currentActorOrNull } from "@/lib/session";
 import { IncidentTrack } from "@/components/IncidentTrack";
 import { DecisionForm, RevealPanel } from "@/components/ManagerTools";
@@ -24,6 +26,7 @@ export default async function FlagPage({ params }: PageProps<"/manager/flags/[id
     throw e;
   }
   const Icon = REASON_ICON[d.flag.reason] ?? Scale;
+  const report = d.flag.reason === "REPEAT_UNRESOLVED" ? await getHouseholdReport(actor, id) : null;
   const stream = (side: string) => d.messages.filter((m) => m.side === side);
 
   return (
@@ -38,12 +41,71 @@ export default async function FlagPage({ params }: PageProps<"/manager/flags/[id
           </span>
         }
       />
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] [&>*]:min-w-0">
         <div className="space-y-5">
           {d.case.disputed && (
             <Callout icon={Scale} title="Disputed">
               The recipient household disputes this concern. Disputed incidents don&apos;t count toward the repeat threshold.
             </Callout>
+          )}
+          {report && (
+            <Card className="p-5">
+              <h2 className="mb-1 flex items-center gap-2 text-lg font-bold">
+                <Home size={18} aria-hidden="true" /> Household report: {report.household.label}
+              </h2>
+              <p className="mb-4 text-sm text-ink-soft">
+                For management only. Who reported stays hidden unless you reveal it (logged). {report.household.verifiedResidents} verified resident{report.household.verifiedResidents === 1 ? "" : "s"} in this household.
+              </p>
+              <dl className="mb-4 grid grid-cols-3 gap-2 text-center">
+                <div className="rounded-2xl bg-coral-wash p-3">
+                  <dt className="text-xs font-semibold text-coral-ink">Unresolved ({categoryName(report.category).toLowerCase()})</dt>
+                  <dd className="text-2xl font-extrabold text-coral-ink">{report.qualifying.length}</dd>
+                </div>
+                <div className="rounded-2xl bg-paper p-3">
+                  <dt className="text-xs font-semibold text-ink-soft">Concerns, 90 days</dt>
+                  <dd className="text-2xl font-extrabold">{report.concernsLast90Days.reduce((n, c) => n + c.count, 0)}</dd>
+                </div>
+                <div className="rounded-2xl bg-paper p-3">
+                  <dt className="text-xs font-semibold text-ink-soft">Disputed</dt>
+                  <dd className="text-2xl font-extrabold">{report.disputedCount}</dd>
+                </div>
+              </dl>
+              {report.concernsLast90Days.length > 0 && (
+                <p className="mb-3 text-sm">
+                  <span className="font-semibold">By type (90 days): </span>
+                  {report.concernsLast90Days.map((c) => `${categoryName(c.category)} ${c.count}`).join(" · ")}
+                </p>
+              )}
+              <h3 className="mb-1.5 text-sm font-bold">How the household responded</h3>
+              {report.responses.length === 0 ? (
+                <p className="mb-3 text-sm text-ink-soft">No replies shared.</p>
+              ) : (
+                <ul className="mb-3 space-y-1.5 text-sm">
+                  {report.responses.map((r, i) => (
+                    <li key={i} className="rounded-xl bg-paper px-3 py-2">
+                      <span className="font-semibold">{r.type}</span>, {fmtDate(r.at)}: {r.summary}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <h3 className="mb-1.5 text-sm font-bold">Earlier management actions</h3>
+              {report.previousActions.length === 0 ? (
+                <p className="text-sm text-ink-soft">None.</p>
+              ) : (
+                <ul className="space-y-1 text-sm">
+                  {report.previousActions.map((a, i) => (
+                    <li key={i}>
+                      {DECISION_LABELS[a.decision as keyof typeof DECISION_LABELS] ?? a.decision}, {fmtDate(a.at)} ({a.policyRef})
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {report.letter?.status === "SENT" && (
+                <p className="mt-3 flex items-center gap-1.5 text-sm font-semibold text-coral-ink">
+                  <FileWarning size={15} aria-hidden="true" /> Warning letter sent {report.letter.sentAt ? fmtDate(report.letter.sentAt) : ""}
+                </p>
+              )}
+            </Card>
           )}
           <IncidentTrack incidents={d.incidents} now={await now()} />
 
@@ -87,6 +149,7 @@ export default async function FlagPage({ params }: PageProps<"/manager/flags/[id
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-10 lg:self-start">
+          {d.flag.status === "OPEN" && report?.letter?.status === "DRAFT" && <WarningLetterForm flagId={d.flag.id} draftText={report.letter.draftText} />}
           <RevealPanel flagId={d.flag.id} />
           {d.flag.status === "OPEN" ? (
             <DecisionForm flagId={d.flag.id} options={MANAGER_DECISIONS.map((v) => ({ value: v, label: DECISION_LABELS[v] }))} />

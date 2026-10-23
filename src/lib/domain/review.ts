@@ -20,7 +20,11 @@ export async function listQueue(actor: Actor) {
     orderBy: { createdAt: "asc" },
   });
   const labels = await householdLabels(flags.map((f) => f.targetHouseholdId));
+  const letters = new Set(
+    (await prisma.warningLetter.findMany({ where: { flagId: { in: flags.map((f) => f.id) }, status: "DRAFT" }, select: { flagId: true } })).map((l) => l.flagId),
+  );
   return flags.map((f) => ({
+    letterReady: letters.has(f.id),
     id: f.id,
     reason: f.reason,
     detail: f.detail,
@@ -102,7 +106,11 @@ export async function revealRestricted(actor: Actor, flagId: string, reason: str
   return { reporterName: user.displayName, reporterHousehold: hh.label, rawReport: c.rawText };
 }
 
-export async function decide(actor: Actor, flagId: string, input: { decision: string; rationale: string; policyRef: string }) {
+export async function decide(
+  actor: Actor,
+  flagId: string,
+  input: { decision: string; rationale: string; policyRef: string; letterText?: string },
+) {
   const flag = await loadFlagForManager(actor, flagId);
   if (flag.status !== "OPEN") throw conflict("This flag has already been decided.");
   if (!MANAGER_DECISIONS.includes(input.decision as ManagerDecision)) throw badRequest("Choose a decision.");
@@ -133,7 +141,9 @@ export async function decide(actor: Actor, flagId: string, input: { decision: st
     if (c.state !== "CLOSED") await transition(tx, c.id, c.state, "CLOSED", { closedAt: at });
     if (decision === "MANAGEMENT_ADVISORY" || decision === "FORMAL_WARNING") {
       const kind = decision === "FORMAL_WARNING" ? "a formal warning" : "an advisory";
-      await msg("RECIPIENT", `Community management has reviewed this case and issued ${kind} under ${policyRef}. Reason: ${rationale}`);
+      // A warning letter (drafted automatically, reviewed and sent by this manager) replaces the short message.
+      const letter = decision === "FORMAL_WARNING" ? input.letterText?.trim() : undefined;
+      await msg("RECIPIENT", letter || `Community management has reviewed this case and issued ${kind} under ${policyRef}. Reason: ${rationale}`);
       await msg("REPORTER", "Community management has reviewed this case and taken action under community rules. The case is now closed.");
     } else {
       const outcome = decision === "CLOSE_RESOLVED" ? "closed it as resolved" : "closed it with no finding against anyone";
@@ -148,6 +158,10 @@ export async function decide(actor: Actor, flagId: string, input: { decision: st
   });
 
   if (c.incidentId && decision === "CLOSE_RESOLVED") await recomputeIncident(c.incidentId);
+  // A drafted warning letter is only sent via sendWarningLetter; any other final decision discards it.
+  if (decision !== "REQUEST_CONTEXT" && !input.letterText) {
+    await prisma.warningLetter.updateMany({ where: { flagId: flag.id, status: "DRAFT" }, data: { status: "DISCARDED" } });
+  }
   // Close sibling flags on the same case so the queue doesn't show stale items.
   if (decision !== "REQUEST_CONTEXT") {
     await prisma.reviewFlag.updateMany({ where: { caseId: c.id, status: "OPEN" }, data: { status: "DECIDED", reviewedAt: at } });

@@ -253,7 +253,7 @@ export function DraftReview({ view }: { view: ReporterCaseView }) {
       <ErrorText message={error} />
 
       {/* Sticky action bar */}
-      <div className="fixed inset-x-0 bottom-0 z-10 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:left-[264px]">
+      <div className="fixed inset-x-0 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-20 border-t border-line bg-white/95 px-4 py-3 backdrop-blur lg:bottom-0 lg:left-[272px]">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-2.5 lg:px-6">
           <Button size="lg" disabled={!ack || blockers.length > 0 || !!busy || mode === "edit"} onClick={() => run("send", approveAndSend)}>
             {busy === "send" ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <Send size={18} aria-hidden="true" />}

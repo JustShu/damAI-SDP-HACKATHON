@@ -11,7 +11,7 @@ async function signInAs(page: Page, name: string) {
   const switcher = page.getByRole("button", { name: "Switch account" });
   if (await switcher.isVisible()) {
     await switcher.click();
-    await expect(page.getByRole("heading", { name: "Choose a demo account" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Welcome to DAMAI" })).toBeVisible();
   }
   await page.getByRole("button", { name: new RegExp(name) }).click();
   await expect(page.getByRole("button", { name: "Switch account" })).toBeVisible();
@@ -32,7 +32,7 @@ test.beforeEach(async ({ page }) => {
 
 test("complete AI-mediated resolution and escalation", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Choose a demo account" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Welcome to DAMAI" })).toBeVisible();
   await snap(page, "00-sign-in");
 
   // 1. House 39 reports House 18's parking with emotional wording.

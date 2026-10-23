@@ -201,3 +201,49 @@ model Setting {
   key   String @id
   value String
 }
+
+// Formal warning letter, drafted automatically when a household reaches the
+// repeat threshold. It is only ever sent by a manager (never automatically).
+model WarningLetter {
+  id                String    @id @default(cuid())
+  flagId            String    @unique
+  caseId            String
+  targetHouseholdId String
+  category          String
+  draftText         String
+  status            String    @default("DRAFT") // DRAFT | SENT | DISCARDED
+  sentText          String?
+  policyRef         String?
+  sentById          String?
+  createdAt         DateTime
+  sentAt            DateTime?
+}
+
+// "Something is happening right now" (e.g. a fight): goes straight to
+// management, outside neighbour mediation. Management can dispatch security
+// and the reporter sees each update.
+model EmergencyAlert {
+  id                  String            @id @default(cuid())
+  communityId         String
+  reporterUserId      String
+  reporterHouseholdId String
+  type                String // FIGHT | INJURY | INTRUDER | OTHER
+  location            String
+  details             String            @default("")
+  status              String            @default("NEW") // NEW | ACKNOWLEDGED | DISPATCHED | ON_SCENE | POLICE | RESOLVED | CANCELLED
+  etaMinutes          Int?
+  createdAt           DateTime
+  updatedAt           DateTime
+  closedAt            DateTime?
+  updates             EmergencyUpdate[]
+}
+
+model EmergencyUpdate {
+  id        String         @id @default(cuid())
+  alertId   String
+  author    String // SYSTEM | MANAGER | REPORTER
+  status    String
+  body      String
+  createdAt DateTime
+  alert     EmergencyAlert @relation(fields: [alertId], references: [id])
+}

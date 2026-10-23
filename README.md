@@ -1,8 +1,13 @@
-# AI Neighbourhood Mediator (prototype)
+# DAMAI · Neighbours at peace
 
-Hackathon prototype for privacy-first, AI-mediated neighbour concerns. **All residents, homes and incidents are synthetic.** Not affiliated with or endorsed by any property company.
+*Jiran aman, hidup damai.* Hackathon prototype for privacy-first, AI-mediated neighbour concerns, plus urgent help from community management. **All residents, homes and incidents are synthetic.** Not affiliated with or endorsed by any property company.
 
 Resident A reports a concern → the AI mediator drafts a neutral notice → A reviews exactly what will be sent and approves it → Resident B replies privately to the mediator → the mediator relays a safe summary → A confirms resolution. Unresolved, repeated or unsafe cases go to a human manager. The AI never decides guilt or issues penalties.
+
+**What's new in DAMAI:**
+- **Warning letters:** when a household reaches 3 separate unresolved incidents of the same type within 30 days, DAMAI drafts a formal warning letter and a household report for management. A manager reviews, edits and sends it. Nothing is sent automatically.
+- **Urgent help (SOS):** for things happening right now, like neighbours fighting. The alert goes straight to management, who can dispatch security; the resident sees each update live ("Security is on the way · about 5 min").
+- **Phone-first design:** a bottom tab bar with a big Report button and SOS, and an installable app (Add to Home Screen).
 
 ## Run it locally
 
@@ -69,6 +74,33 @@ Besides Noise, Parking and Pet, residents can choose **Other** (rubbish, smoke, 
 | Farah (`manager@example.test`) | Estate manager | Review queue, demo clock, reset |
 | Invited (unverified) | House 41 | Shows that an unverified person gets no access |
 
+## Phone app
+
+DAMAI is designed for phones first. On a phone it shows a bottom tab bar (**Home**, a big **Report** button, and **SOS**); on a computer it shows a sidebar.
+
+To use it like an app on your phone, connect your phone to the same Wi-Fi as your computer and open the **Network** address that `npm run dev` prints (e.g. `http://192.168.x.x:3000`). Then choose **Add to Home Screen** in your browser menu.
+
+## Warning letters
+
+When the third separate unresolved incident of the same type against one household lands within 30 days (the existing repeat rule), DAMAI:
+
+1. Raises the review flag as before.
+2. Drafts a **formal warning letter** from the facts only: dates, number of incidents, and what is being asked. It never says who reported.
+3. Shows management a **household report**: unresolved incidents, concerns in the last 90 days by type, disputes, how the household replied, and earlier actions.
+
+The manager names the community rule (it replaces `[community rule]` in the letter), records a reason, edits the letter if needed, and presses **Send warning letter**. It arrives in the household's private thread from "Community management (a person)". Choosing any other decision discards the draft. Only distinct, undisputed, unresolved incidents count; several reports of the same night count once.
+
+## Urgent help (SOS)
+
+For something happening **right now**, such as a fight, an injury or an intruder. It is separate from neighbour mediation:
+
+- The resident taps **SOS**, picks what's happening, says where, and sends. A 999 button is always on screen.
+- Management sees it at the top of their page (with the resident's name and house so security can reach them) and responds: **Seen**, **Dispatch security** (with ETA and an optional note), **Security on scene**, **Police contacted**, or **Resolved**.
+- The resident's screen updates by itself with each step. They can cancel a false alarm.
+- Up to 5 alerts per resident per day. Alert details are never written to the audit log.
+
+DAMAI is not monitored in real time unless your community staffs it, so the app always tells residents to call 999 first if anyone is in danger.
+
 ## Six-minute demo script
 
 1. **Daniel (House 39):** *Report a concern*, choose House 18 and parking, type something emotional like "House 18 keeps parking in front of my gate!! So rude. It's House 39's gate." The review screen shows your words with identifying details struck out next to the exact neutral notice. Tick the consent box, then *Approve and send*.
@@ -76,14 +108,17 @@ Besides Noise, Parking and Pet, residents can choose **Other** (rubbish, smoke, 
 3. **Daniel:** open the parking case, read the relayed summary (not House 18's own words), then *Mark as resolved*.
 4. **Daniel:** open the seeded noise concern about House 18 and choose *Not resolved yet*. That makes the third separate unresolved noise incident in 30 days, so the case goes to management review. No warning is issued.
 5. **Farah (manager):** open the flag. It lists the separate incidents (one was reported by two households but counts once), and the reporter's identity stays hidden unless revealed with a logged reason. Record a decision with a rationale and the rule applied.
-6. **Farah:** *Advance 1 day*. The unanswered pet concern passes 7 days and an "Unresolved after 7 days" flag appears.
+6. **Farah:** the flag shows **Warning letter ready to review**. Open it, read the household report, fill in the rule (e.g. "Demo Park house rules, s.4 quiet hours") and a reason, then *Send warning letter*. Sign in as Nur Aisyah to see it arrive.
+7. **Daniel:** tap **SOS**, choose *Fight or violence*, enter a location, then *Alert management now*. Keep this screen open.
+8. **Farah:** the alert is at the top of the page. Open it and *Dispatch security* with an ETA. Daniel's screen changes to "Security on the way" by itself.
+9. **Farah:** *Advance 1 day*. The unanswered pet concern passes 7 days and an "Unresolved after 7 days" flag appears.
 
 *Reset demo data* on the manager page restores everything for another run.
 
 ## Tests
 
 ```bash
-npm test             # 51 unit/integration tests (Vitest, separate prisma/test.db)
+npm test             # 58 unit/integration tests (Vitest, separate prisma/test.db)
 npm run typecheck
 npm run lint
 npm run build && npx playwright install chromium && npm run e2e   # browser walkthrough of the demo above
@@ -99,6 +134,7 @@ Acceptance tests from `docs/10` mapped to `tests/`:
 | T09–T14, T19, T20 (flags), manager decisions and reveal logging | `phase3-escalation.test.ts` |
 | Mediator: bad-faith decline, child safety, clarification, fact extraction, regenerate/tone, reply summaries | `phase4-mediator.test.ts` |
 | "Other" concerns (topic, drafting, regenerate, no grouping/repeat counting), Gemini adapter and fallback | `phase5-other-and-ai.test.ts` |
+| Warning letters (draft, household report, manager-only send, discard) and urgent alerts (dispatch, live updates, privacy, cancel, limits) | `phase6-letters-alerts.test.ts` |
 
 ## How it's built
 

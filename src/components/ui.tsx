@@ -44,8 +44,9 @@ export function CategoryTile({ category, size = 40 }: { category: string; size?:
 export const categoryName = (c: string) => CATEGORY[c]?.label ?? c;
 
 const BUTTON = {
-  primary: "bg-teal-ink text-white hover:bg-[#0d5b57] active:bg-navy shadow-sm disabled:bg-ink-faint disabled:shadow-none",
+  primary: "bg-damai text-white shadow-[0_8px_20px_-8px_rgb(47_111_214_/_0.6)] hover:brightness-110 active:brightness-95 disabled:bg-none disabled:bg-ink-faint disabled:shadow-none",
   dark: "bg-navy text-white hover:bg-navy-deep disabled:bg-ink-faint",
+  danger: "bg-sos text-white shadow-[0_8px_20px_-8px_rgb(225_29_72_/_0.6)] hover:brightness-110 disabled:bg-none disabled:bg-ink-faint disabled:shadow-none",
   secondary: "bg-white text-ink ring-1 ring-inset ring-line-strong hover:ring-ink/40 hover:bg-paper disabled:text-ink-faint",
   ghost: "text-teal-ink hover:bg-teal-wash disabled:text-ink-faint",
 };
@@ -74,7 +75,7 @@ export function LinkButton({ href, children, variant = "primary", className = ""
 }
 
 export function Card({ children, className = "", as: Tag = "section" }: { children: ReactNode; className?: string; as?: "section" | "div" | "article" }) {
-  return <Tag className={`rounded-2xl bg-surface ring-1 ring-line ${className}`}>{children}</Tag>;
+  return <Tag className={`rounded-3xl bg-surface shadow-lift ring-1 ring-line ${className}`}>{children}</Tag>;
 }
 
 export function Callout({ tone = "info", icon: Icon, title, children }: { tone?: "info" | "privacy" | "danger"; icon?: LucideIcon; title?: string; children: ReactNode }) {
@@ -114,7 +115,7 @@ export function PageHeader({ title, description, actions, back }: { title: strin
       )}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0 space-y-1.5">
-          <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.02em] sm:text-[30px]">{title}</h1>
+          <h1 className="text-[26px] font-extrabold leading-tight tracking-[-0.025em] sm:text-[32px]">{title}</h1>
           {description && <div className="max-w-[65ch] text-[15px] text-ink-soft">{description}</div>}
         </div>
         {actions}

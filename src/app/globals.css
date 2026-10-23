@@ -1,36 +1,86 @@
 @import "tailwindcss";
 
-/* Palette from docs/09, extended into a small token set.
-   teal-ink / coral-ink are darker variants for text (contrast >= 4.5:1). */
+/* DAMAI palette: deep indigo base, lagoon teal, warm coral accent.
+   The token names are shared by every screen, so changing them restyles the
+   whole app. teal-ink / coral-ink are darker variants for text (contrast >= 4.5:1). */
 @theme {
-  --color-paper: #f3f6f5;
+  --color-paper: #f4f3fb;
   --color-surface: #ffffff;
-  --color-ink: #142b45;
-  --color-ink-soft: #52647a;
-  --color-ink-faint: #8a98a8;
-  --color-navy: #142b45;
-  --color-navy-deep: #0e2035;
-  --color-navy-line: #26405e;
-  --color-teal: #23a6a0;
-  --color-teal-ink: #12706b;
-  --color-teal-wash: #e5f4f2;
-  --color-coral: #f2a38a;
-  --color-coral-wash: #fdeee8;
-  --color-coral-ink: #8a3a22;
-  --color-line: #dce4e2;
-  --color-line-strong: #c4d0cd;
+  --color-ink: #1b1840;
+  --color-ink-soft: #555177;
+  --color-ink-faint: #8b88a8;
+  --color-navy: #221c5c;
+  --color-navy-deep: #17123f;
+  --color-navy-line: #3a3480;
+  --color-teal: #12b5a6;
+  --color-teal-ink: #0b6f67;
+  --color-teal-wash: #e2f7f4;
+  --color-coral: #ff8f6b;
+  --color-coral-wash: #fff0ea;
+  --color-coral-ink: #9a3412;
+  --color-sos: #e11d48;
+  --color-sos-deep: #be123c;
+  --color-sos-wash: #ffe4ea;
+  --color-line: #e4e2f1;
+  --color-line-strong: #cdcae2;
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
-  --shadow-lift: 0 1px 2px rgb(20 43 69 / 0.06), 0 8px 24px -12px rgb(20 43 69 / 0.18);
+  --shadow-lift: 0 1px 2px rgb(27 24 64 / 0.06), 0 12px 28px -14px rgb(34 28 92 / 0.28);
+}
+
+/* Signature DAMAI gradients. */
+@utility bg-damai {
+  background-image: linear-gradient(135deg, #4c3fd8 0%, #2f6fd6 45%, #12b5a6 100%);
+}
+@utility bg-damai-night {
+  background-image: radial-gradient(120% 80% at 0% 0%, #3d33b8 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 100%, #0e8f86 0%, transparent 60%), linear-gradient(160deg, #1d1752 0%, #15103a 100%);
+}
+@utility bg-sos {
+  background-image: linear-gradient(135deg, #f43f5e 0%, #e11d48 55%, #be123c 100%);
+}
+@utility text-damai {
+  background-image: linear-gradient(90deg, #6d5cff 0%, #12b5a6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* Space for the phone's bottom tab bar and home indicator. */
+@utility pb-tabbar {
+  padding-bottom: calc(5.5rem + env(safe-area-inset-bottom));
+}
+@utility safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }
 
 html {
   background: var(--color-paper);
   color: var(--color-ink);
   -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--color-paper);
+  background:
+    radial-gradient(60rem 30rem at 110% -10%, rgb(18 181 166 / 0.10), transparent 60%),
+    radial-gradient(50rem 28rem at -10% 0%, rgb(76 63 216 / 0.09), transparent 60%),
+    var(--color-paper);
+  background-attachment: fixed;
+}
+
+/* Gentle pulse for live / urgent indicators. */
+@keyframes ping-soft {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+.ping-soft {
+  animation: ping-soft 1.6s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
 ::selection {

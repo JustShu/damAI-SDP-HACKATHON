@@ -1,6 +1,7 @@
 import { prisma } from "../db";
 import { POLICY } from "./constants";
 import { raiseFlag } from "./flags";
+import { draftWarningLetter } from "./warnings";
 
 // Deterministic incident grouping and repeat counting (docs/03). No AI here.
 
@@ -74,7 +75,7 @@ export async function checkRepeatThreshold(incidentId: string, triggeringCaseId:
     where: { reason: "REPEAT_UNRESOLVED", targetHouseholdId: inc.targetHouseholdId, category: inc.category, status: "OPEN" },
   });
   if (open) return null;
-  return raiseFlag({
+  const flag = await raiseFlag({
     caseId: triggeringCaseId,
     targetHouseholdId: inc.targetHouseholdId,
     category: inc.category,
@@ -83,4 +84,7 @@ export async function checkRepeatThreshold(incidentId: string, triggeringCaseId:
     detail: `${count} distinct qualifying unresolved incidents within ${POLICY.repeatWindowDays} days`,
     at,
   });
+  // Prepare a warning letter for management to review. It is never sent automatically.
+  if (flag) await draftWarningLetter(flag, at);
+  return flag;
 }
